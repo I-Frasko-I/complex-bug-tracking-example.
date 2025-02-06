@@ -1,0 +1,30 @@
+name: Automate Project Workflow
+on:
+  issues:
+    types: [labeled, unlabeled]
+    labels:
+      - in-progress
+      - in-review
+      - done
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Update project board
+        run: |
+          curl -X POST \
+            https://api.github.com/repos/your-username/your-repo/projects/PROJECT_ID/columns \
+            -H 'Authorization: Bearer YOUR_GITHUB_TOKEN' \
+            -H 'Content-Type: application/json' \
+            -d '{"name": "In Progress"}'
+
+          if [ "$GITHUB_EVENT_LABEL" == "in-progress" ]; then
+            curl -X POST \
+              https://api.github.com/repos/your-username/your-repo/projects/PROJECT_ID/columns/COLUMN_ID/cards \
+              -H 'Authorization: Bearer YOUR_GITHUB_TOKEN' \
+              -H 'Content-Type: application/json' \
+              -d '{"content_id": Issue_ID, "content_type": "Issue"}'
+          fi
